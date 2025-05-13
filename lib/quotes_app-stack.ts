@@ -19,7 +19,8 @@ export class QuotesAppStack extends cdk.Stack {
       handler: "org.morsaprogramando.app_quotes.App::handleRequest",
       code: lambda.Code.fromAsset("./app/target/app.jar"),
       memorySize: 256,
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      environment: {"bucketName": storeBucket.bucketName}
     });
 
     storeBucket.grantReadWrite(lambdaLogic);
