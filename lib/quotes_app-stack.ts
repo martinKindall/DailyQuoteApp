@@ -4,6 +4,10 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as iam from 'aws-cdk-lib/aws-iam';
+
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 
 export class QuotesAppStack extends cdk.Stack {
@@ -18,11 +22,28 @@ export class QuotesAppStack extends cdk.Stack {
       runtime: lambda.Runtime.JAVA_21,
       handler: "org.morsaprogramando.app_quotes.App::handleRequest",
       code: lambda.Code.fromAsset("./app/target/app.jar"),
-      memorySize: 256,
+      memorySize: 512,
       timeout: cdk.Duration.seconds(30),
-      environment: {"bucketName": storeBucket.bucketName}
+      environment: {
+        "bucketName": storeBucket.bucketName,
+        "SES_ARN": process.env.SES_ARN!,
+        "EMAIL_ADDR": process.env.EMAIL_ADDR!,
+        "TO_ADDR": process.env.TO_ADDR!
+      }
     });
 
+    const sesArnSender = process.env.SES_ARN!;
+    const sesArnReceiver = process.env.SES_ARN_RECEIVER!;
+
+    const sesPolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'ses:SendEmail'
+      ],
+      resources: [sesArnSender, sesArnReceiver],
+    });
+
+    lambdaLogic.addToRolePolicy(sesPolicy);
     storeBucket.grantReadWrite(lambdaLogic);
 
     // Eventbridge
