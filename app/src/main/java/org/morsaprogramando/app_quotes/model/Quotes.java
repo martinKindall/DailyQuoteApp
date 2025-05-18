@@ -17,16 +17,16 @@ public record Quotes(List<Quote> data) {
 
         if (quoteList.isEmpty()) {
             Quote random = getRandom(quotes.data);
-            return new Result(random.text, true);
+            return new Result(random, true);
         }
 
         Quote random = getRandom(quoteList);
-        return new Result(random.text, false);
+        return new Result(random, false);
     }
 
     private static Quote getRandom(List<Quote> quoteList) {
         return quoteList.get(rand.nextInt(quoteList.size()));
     }
 
-    public record Result(String quote, boolean exhausted) {}
+    public record Result(Quote quote, boolean exhausted) {}
 }
