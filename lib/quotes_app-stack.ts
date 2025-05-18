@@ -50,7 +50,7 @@ export class QuotesAppStack extends cdk.Stack {
     const rule = new events.Rule(this, 'Daily8amRule', {
       schedule: events.Schedule.cron({
         minute: '0',
-        hour: '10',
+        hour: '6',
       }),
     });
 
