@@ -8,26 +8,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.morsaprogramando.app_quotes.configuration.AWSClients;
 import org.morsaprogramando.app_quotes.configuration.ObjectMapperConfig;
 import org.morsaprogramando.app_quotes.model.Quotes;
-import software.amazon.awssdk.core.ResponseInputStream;
+import org.morsaprogramando.app_quotes.repository.QuotesRepository;
+import org.morsaprogramando.app_quotes.service.QuotesService;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.sesv2.SesV2Client;
 import software.amazon.awssdk.services.sesv2.model.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class App implements RequestHandler<ScheduledEvent, Void> {
-
-    private final String FILENAME = "test_file.json";
-    private final String BUCKET_NAME = System.getenv("bucketName");
 
 
     @Override
@@ -40,7 +33,10 @@ public class App implements RequestHandler<ScheduledEvent, Void> {
         try(S3Client s3Client = clients.createS3Client();
             SesV2Client sesClient = clients.createSesClient()) {
 
-            setup(s3Client, sesClient, objectMapper);
+            QuotesRepository quotesRepository = new QuotesRepository(s3Client, objectMapper);
+            QuotesService quotesService = new QuotesService(quotesRepository);
+
+            setup(quotesService, sesClient);
         }
 
         System.out.println("Finished");
@@ -48,33 +44,12 @@ public class App implements RequestHandler<ScheduledEvent, Void> {
         return null;
     }
 
-    private void setup(S3Client s3Client, SesV2Client sesClient, ObjectMapper objectMapper) {
-        Quotes quotes = getQuotes(s3Client, objectMapper);
-        Quotes.Result result = Quotes.getRandom(quotes);
+    private void setup(QuotesService quotesService, SesV2Client sesClient) {
+        Quotes.Result result = quotesService.getRandom();
 
         sendEmail(sesClient, result.quote().text());
 
         updateQuotes(s3Client, quotes, result, objectMapper);
-    }
-
-    private Quotes getQuotes(S3Client s3Client, ObjectMapper objectMapper) {
-        GetObjectRequest objectRequest = GetObjectRequest.builder()
-                .key(FILENAME)
-                .bucket(BUCKET_NAME)
-                .build();
-
-        ResponseInputStream<GetObjectResponse> response = s3Client.getObject(objectRequest);
-
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            response.transferTo(outputStream);
-            String jsonContent = outputStream.toString(StandardCharsets.UTF_8);
-
-            return objectMapper.readValue(jsonContent, Quotes.class);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void sendEmail(SesV2Client client, String text) {
