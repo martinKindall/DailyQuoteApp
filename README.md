@@ -1,14 +1,37 @@
-# Welcome to your CDK TypeScript project
+# Daily Quote App
 
-This is a blank project for CDK development with TypeScript.
+Receive every morning 1 inspiring quote in your email to kick off the day with the right foot.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Requirements
 
-## Useful commands
+- aws-cli/2.27.12 or greater
+- AWS CDK v2.1014.0 or greater
+- Java 21
+- Maven 3.9.2 or greater
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+## Compile
+
+```bash
+cd app
+mvn clean package
+```
+
+## Configure
+
+Copy __.env.example__ and create a file called __.env__ at the root of the project. Fill it with the right information.
+
+## Deploy
+
+Make sure you setup your aws cli has the right credentials, or just login using sso
+
+```bash
+aws sso login
+```
+
+Then,
+
+```bash
+cdk bootstrap  # only the first time
+cdk diff
+cdk deploy
+```
