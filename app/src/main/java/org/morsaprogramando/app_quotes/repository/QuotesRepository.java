@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 public class QuotesRepository {
 
-    private final String FILENAME = "test_file.json";
+    private final String FILENAME = "inspirational_quotes.json";
 
     private final String BUCKET_NAME = System.getenv("bucketName");
 
