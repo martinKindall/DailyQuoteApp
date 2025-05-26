@@ -6,5 +6,5 @@ public record Quotes(List<Quote> data) {
 
     public record Quote(Integer id, String text, Boolean read) {}
 
-    public record Result(Quote quote, boolean exhausted) {}
+    public record Result(Quote quote, boolean exhausted, Quotes quotes) {}
 }
